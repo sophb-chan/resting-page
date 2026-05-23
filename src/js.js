@@ -134,11 +134,13 @@ const ping = async (...urls)=>{
         } catch {
             pingTime.textContent = 'Unable to ping - Fetch failed';
             console.clear();
-            console.log('Console was cleared to remove fetch error bloat.')
+            console.log('Console was cleared to remove fetch error bloat.');
+            requestAnimationFrame(()=>ping());
             continue;
         }
         const totalTime = Date.now() - startTime;
         pingTime.textContent = displayTotalTime(totalTime, true);
+        updateCheck();
         return totalTime;
     }
 }
@@ -163,7 +165,7 @@ async function updateCheck() {
         location.reload();
 }
 updateCheck();
-setInterval(updateCheck, 60e3);
+// setInterval(updateCheck, 60e3);
 
 // main loop
 let battery = {};
