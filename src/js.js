@@ -23,6 +23,30 @@ function displayTime(ms) {
         return `${(ms / (60e3 * 60 * 24 * 7)).toFixed(2)}w`
     }
 }
+function displayStackedTime(time, includeMs = false) {
+    function displayedTimeScale(time) {
+        const displayedTime = displayTime(time);
+        return /\d+([a-z]+)$/.exec(displayedTime)?.[1] ?? '';
+    }
+
+    const displayedTimes = [];
+    do {
+        displayedTimes.push(displayTime(time));
+        const timeScale = displayedTimeScale(time);
+        if (timeScale === 'ms') break;
+        const wraparounds = {
+            w: 6.048e8,
+            d: 8.64e7,
+            h: 3.6e6,
+            m: 60e3,
+            s: 1e3
+        }
+        time %= wraparounds[timeScale];
+    } while (displayedTimeScale(time) !== 'ms');
+    if (includeMs && !displayedTimes[displayedTimes.length - 1].endsWith('ms')) displayedTimes.push(displayTime(time));
+
+    return displayedTimes.join(' ');
+}
 
 // element variables
 const batteryPercentage = document.getElementById('battery-percent');
@@ -67,7 +91,7 @@ navigator.getBattery().then(battery => {
             }, 20e3);
         } else {
             clearTimeout(estimateTimeout);
-            batteryChargeTime.textContent = displayTime(Math.min(battery.chargingTime, battery.dischargingTime) * 1e3);
+            batteryChargeTime.textContent = displayStackedTime(Math.min(battery.chargingTime, battery.dischargingTime) * 1e3);
         }
     }
 
@@ -114,7 +138,7 @@ const ping = async (...urls)=>{
             continue;
         }
         const totalTime = Date.now() - startTime;
-        pingTime.textContent = `${totalTime}ms`;
+        pingTime.textContent = displayTotalTime(totalTime, true);
         return totalTime;
     }
 }
@@ -143,7 +167,7 @@ setInterval(updateCheck, 60e3);
 
 // main loop
 let battery = {};
-let debuggingMode = true;
+let debuggingMode = false;
 let lastFpsMeasure = 0, frame, fps;
 async function main() {
     // cursor hiding
