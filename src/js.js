@@ -139,7 +139,7 @@ const ping = async (...urls)=>{
             continue;
         }
         const totalTime = Date.now() - startTime;
-        pingTime.textContent = displayTotalTime(totalTime, true);
+        pingTime.textContent = displayStackedTime(totalTime, true);
         updateCheck();
         return totalTime;
     }
