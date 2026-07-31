@@ -48,6 +48,9 @@ function displayStackedTime(time, includeMs = false) {
 
 	return displayedTimes.join(" ");
 }
+function delay(ms) {
+    return new Promise(res => setTimeout(res, ms));
+}
 
 // element variables
 const batteryPercentage = document.getElementById("battery-percent");
@@ -132,7 +135,7 @@ const ping = async (...urls) => {
 			"http://dns.google/",
 			"https://dns.opendns.com",
 		];
-	for (const url of urls) {
+	for (const [index, url] of urls.entries()) {
 		pingTime.textContent = `Pinging '${url}'...`;
 		if (!navigator.onLine) {
 			pingTime.textContent =
@@ -143,8 +146,9 @@ const ping = async (...urls) => {
 		try {
 			await fetch(url);
 		} catch {
-			pingTime.textContent = "Unable to ping - Fetch failed";
-			requestAnimationFrame(() => ping());
+            pingTime.textContent = `Unable to ping '${url}' - Fetch failed`;
+            if (index !== urls.length - 1)
+                await delay(500);
 			continue;
 		}
 		const totalTime = Date.now() - startTime;
