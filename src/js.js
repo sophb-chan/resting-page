@@ -92,6 +92,7 @@ navigator.getBattery().then((battery) => {
 			batteryChargeTime.textContent = "Estimating...";
 			clearTimeout(estimateTimeout);
 			estimateTimeout = setTimeout(() => {
+                // TODOO: make your own estimation system
 				batteryChargeTime.textContent =
 					"Estimating... (Giving up in 10 seconds...)";
 				estimateTimeout = setTimeout(() => {
