@@ -144,7 +144,7 @@ const ping = async (...urls) => {
 		}
 		const startTime = Date.now();
 		try {
-			await fetch(url);
+			await fetch(url, { mode: 'no-cors' });
 		} catch {
             pingTime.textContent = `Unable to ping '${url}' - Fetch failed`;
             if (index !== urls.length - 1)
