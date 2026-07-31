@@ -1,168 +1,175 @@
 // helpers
 function debounce(func, ms) {
-    let timeout;
-    return function(...args) {
-        clearTimeout(timeout);
-        timeout = setTimeout(function() {
-            func.apply(this, args);
-        }, ms);
-    }
+	let timeout;
+	return function (...args) {
+		clearTimeout(timeout);
+		timeout = setTimeout(function () {
+			func.apply(this, args);
+		}, ms);
+	};
 }
 function displayTime(ms) {
-    if (ms < 1e3) {
-        return `${ms}ms`;
-    } else if (ms < 60e3) {
-        return `${Math.trunc(ms / 1e3)}s`
-    } else if (ms < 3.6e6) {
-        return `${Math.trunc(ms / 60e3)}m`
-    } else if (ms < 8.64e7) {
-        return `${Math.trunc(ms / (60e3 * 60))}h`
-    } else if (ms < 6.048e8) {
-        return `${(ms / 8.64e7).toFixed(2)}d`
-    } else {
-        return `${(ms / (60e3 * 60 * 24 * 7)).toFixed(2)}w`
-    }
+	if (ms < 1e3) {
+		return `${ms}ms`;
+	} else if (ms < 60e3) {
+		return `${Math.trunc(ms / 1e3)}s`;
+	} else if (ms < 3.6e6) {
+		return `${Math.trunc(ms / 60e3)}m`;
+	} else if (ms < 8.64e7) {
+		return `${Math.trunc(ms / (60e3 * 60))}h`;
+	} else if (ms < 6.048e8) {
+		return `${(ms / 8.64e7).toFixed(2)}d`;
+	} else {
+		return `${(ms / (60e3 * 60 * 24 * 7)).toFixed(2)}w`;
+	}
 }
 function displayStackedTime(time, includeMs = false) {
-    function displayedTimeScale(time) {
-        const displayedTime = displayTime(time);
-        return /\d+([a-z]+)$/.exec(displayedTime)?.[1] ?? '';
-    }
+	function displayedTimeScale(time) {
+		const displayedTime = displayTime(time);
+		return /\d+([a-z]+)$/.exec(displayedTime)?.[1] ?? "";
+	}
 
-    const displayedTimes = [];
-    do {
-        displayedTimes.push(displayTime(time));
-        const timeScale = displayedTimeScale(time);
-        if (timeScale === 'ms') break;
-        const wraparounds = {
-            w: 6.048e8,
-            d: 8.64e7,
-            h: 3.6e6,
-            m: 60e3,
-            s: 1e3
-        }
-        time %= wraparounds[timeScale];
-    } while (displayedTimeScale(time) !== 'ms');
-    if (includeMs && !displayedTimes[displayedTimes.length - 1].endsWith('ms')) displayedTimes.push(displayTime(time));
+	const displayedTimes = [];
+	do {
+		displayedTimes.push(displayTime(time));
+		const timeScale = displayedTimeScale(time);
+		if (timeScale === "ms") break;
+		const wraparounds = {
+			w: 6.048e8,
+			d: 8.64e7,
+			h: 3.6e6,
+			m: 60e3,
+			s: 1e3,
+		};
+		time %= wraparounds[timeScale];
+	} while (displayedTimeScale(time) !== "ms");
+	if (includeMs && !displayedTimes[displayedTimes.length - 1].endsWith("ms"))
+		displayedTimes.push(displayTime(time));
 
-    return displayedTimes.join(' ');
+	return displayedTimes.join(" ");
 }
 
 // element variables
-const batteryPercentage = document.getElementById('battery-percent');
-const batteryIsCharging = document.getElementById('battery-ischarging');
-const batteryChargeType = document.getElementById('battery-chargetype');
-const batteryChargeTime = document.getElementById('battery-chargetime');
-const restingTime = document.getElementById('resting-time');
-const timeAndDate = document.getElementById('time-and-date');
-const isOnline = document.getElementById('is-online');
-const connectionType = document.getElementById('connection-type');
-const effectiveType = document.getElementById('effective-type');
-const pingTime = document.getElementById('ping');
-const fpsCounter = document.getElementById('fps');
-const heapUsed = document.getElementById('heap-used');
+const batteryPercentage = document.getElementById("battery-percent");
+const batteryIsCharging = document.getElementById("battery-ischarging");
+const batteryChargeType = document.getElementById("battery-chargetype");
+const batteryChargeTime = document.getElementById("battery-chargetime");
+const restingTime = document.getElementById("resting-time");
+const timeAndDate = document.getElementById("time-and-date");
+const isOnline = document.getElementById("is-online");
+const connectionType = document.getElementById("connection-type");
+const effectiveType = document.getElementById("effective-type");
+const pingTime = document.getElementById("ping");
+const fpsCounter = document.getElementById("fps");
+const heapUsed = document.getElementById("heap-used");
 
 // interactions
 let lastMouseMove = Date.now();
 let restTime = 0;
-document.addEventListener('mousemove', ()=>{
-    lastMouseMove = Date.now();
-    restTime = 0;
+document.addEventListener("mousemove", () => {
+	lastMouseMove = Date.now();
+	restTime = 0;
 });
 
 // battery
 let estimateTimeout;
-navigator.getBattery().then(battery => {
-    const updateBatteryPercentage = ()=>batteryPercentage.textContent = Math.trunc(battery.level * 100);
-    const updateBatteryCharging = ()=>{
-        batteryIsCharging.textContent = battery.charging ? 'yes' : 'no';
-        updateBatteryStatus();
-    }
-    const updateBatteryStatus = ()=>{
-        batteryChargeType.textContent = battery.charging ? 'is full' : 'drains';
-        if (!isFinite(battery.chargingTime) && !isFinite(battery.dischargingTime)) {
-            batteryChargeTime.textContent = 'Estimating...';
-            clearTimeout(estimateTimeout);
-            estimateTimeout = setTimeout(()=>{
-                batteryChargeTime.textContent = 'Estimating... (Giving up in 10 seconds...)';
-                estimateTimeout = setTimeout(()=>{
-                    batteryChargeTime.textContent = `Could not estimate battery ${battery.charging ? 'charge' : 'discharge'} time :(`;
-                }, 10e3);
-            }, 20e3);
-        } else {
-            clearTimeout(estimateTimeout);
-            batteryChargeTime.textContent = displayStackedTime(Math.min(battery.chargingTime, battery.dischargingTime) * 1e3);
-        }
-    }
+navigator.getBattery().then((battery) => {
+	const updateBatteryPercentage = () =>
+		(batteryPercentage.textContent = Math.trunc(battery.level * 100));
+	const updateBatteryCharging = () => {
+		batteryIsCharging.textContent = battery.charging ? "yes" : "no";
+		updateBatteryStatus();
+	};
+	const updateBatteryStatus = () => {
+		batteryChargeType.textContent = battery.charging ? "is full" : "drains";
+		if (
+			!isFinite(battery.chargingTime) &&
+			!isFinite(battery.dischargingTime)
+		) {
+			batteryChargeTime.textContent = "Estimating...";
+			clearTimeout(estimateTimeout);
+			estimateTimeout = setTimeout(() => {
+				batteryChargeTime.textContent =
+					"Estimating... (Giving up in 10 seconds...)";
+				estimateTimeout = setTimeout(() => {
+					batteryChargeTime.textContent = `Could not estimate battery ${battery.charging ? "charge" : "discharge"} time :(`;
+				}, 10e3);
+			}, 20e3);
+		} else {
+			clearTimeout(estimateTimeout);
+			batteryChargeTime.textContent = displayStackedTime(
+				Math.min(battery.chargingTime, battery.dischargingTime) * 1e3,
+			);
+		}
+	};
 
-    updateBatteryPercentage();
-    updateBatteryCharging();
-    updateBatteryStatus();
+	updateBatteryPercentage();
+	updateBatteryCharging();
+	updateBatteryStatus();
 
-    battery.onlevelchange = updateBatteryPercentage;
-    battery.onchargingchange = updateBatteryCharging;
-    battery.ondischargingtimechange = battery.onchargingtimechange = updateBatteryStatus;
+	battery.onlevelchange = updateBatteryPercentage;
+	battery.onchargingchange = updateBatteryCharging;
+	battery.ondischargingtimechange = battery.onchargingtimechange =
+		updateBatteryStatus;
 });
 
 // networking
-isOnline.textContent = navigator.onLine ? 'yes' : 'no';
+isOnline.textContent = navigator.onLine ? "yes" : "no";
 connectionType.textContent = navigator.connection.type;
 effectiveType.textContent = navigator.connection.effectiveType;
 let lastOnline = navigator.onLine;
-navigator.connection.addEventListener('change', ()=>{
-    if (navigator.onLine && !lastOnline) ping();
-    lastOnline = navigator.onLine;
-    isOnline.textContent = navigator.onLine ? 'yes' : 'no';
-    connectionType.textContent = navigator.connection.type;
-    effectiveType.textContent = navigator.connection.effectiveType;
+navigator.connection.addEventListener("change", () => {
+	if (navigator.onLine && !lastOnline) ping();
+	lastOnline = navigator.onLine;
+	isOnline.textContent = navigator.onLine ? "yes" : "no";
+	connectionType.textContent = navigator.connection.type;
+	effectiveType.textContent = navigator.connection.effectiveType;
 });
-const ping = async (...urls)=>{
-    if (urls.length === 0) urls = [
-        'https://httpbin.org/',
-        'http://dns.google/',
-        'https://dns.opendns.com',
-    ];
-    for (const url of urls) {
-        pingTime.textContent = `Pinging '${url}'...`;
-        if (!navigator.onLine) {
-            pingTime.textContent = 'Unable to ping - Device has no access to internet';
-            return null;
-        }
-        const startTime = Date.now();
-        try {
-            await fetch(url);
-        } catch {
-            pingTime.textContent = 'Unable to ping - Fetch failed';
-            console.clear();
-            console.log('Console was cleared to remove fetch error bloat.');
-            requestAnimationFrame(()=>ping());
-            continue;
-        }
-        const totalTime = Date.now() - startTime;
-        pingTime.textContent = displayStackedTime(totalTime, true);
-        updateCheck();
-        return totalTime;
-    }
-}
+const ping = async (...urls) => {
+	if (urls.length === 0)
+		urls = [
+			"https://httpbin.org/",
+			"http://dns.google/",
+			"https://dns.opendns.com",
+		];
+	for (const url of urls) {
+		pingTime.textContent = `Pinging '${url}'...`;
+		if (!navigator.onLine) {
+			pingTime.textContent =
+				"Unable to ping - Device has no access to internet";
+			return null;
+		}
+		const startTime = Date.now();
+		try {
+			await fetch(url);
+		} catch {
+			pingTime.textContent = "Unable to ping - Fetch failed";
+			requestAnimationFrame(() => ping());
+			continue;
+		}
+		const totalTime = Date.now() - startTime;
+		pingTime.textContent = displayStackedTime(totalTime, true);
+		updateCheck();
+		return totalTime;
+	}
+};
 setInterval(ping, 15e3);
 ping();
 
 // check for updates
 let lastSha;
 async function updateCheck() {
-    const latestSha =
-        JSON.parse(
-            await (
-                await fetch(
-                    'https://api.github.com/repos/sophb-ccjt/resting-page/commits?per_page=1&sha=main&nocache=' + Math.random()
-                )
-            ).text()
-        )[0]?.sha;
+	const latestSha = JSON.parse(
+		await (
+			await fetch(
+				"https://api.github.com/repos/sophb-ccjt/resting-page/commits?per_page=1&sha=main&nocache=" +
+					Math.random(),
+			)
+		).text(),
+	)[0]?.sha;
 
-    if (lastSha == null)
-        lastSha = latestSha;
-    else if (lastSha !== latestSha && navigator.onLine)
-        location.reload();
+	if (lastSha == null) lastSha = latestSha;
+	else if (lastSha !== latestSha && navigator.onLine) location.reload();
 }
 updateCheck();
 // setInterval(updateCheck, 60e3);
@@ -170,44 +177,52 @@ updateCheck();
 // main loop
 let battery = {};
 let debuggingMode = false;
-let lastFpsMeasure = 0, frame, fps;
+let lastFpsMeasure = 0,
+	frame,
+	fps;
 async function main() {
-    // cursor hiding
-    if (Date.now() - lastMouseMove >= 3e3) {
-        document.body.style.cursor = 'none';
-        restTime = Date.now() - lastMouseMove - 3e3;
-        restingTime.textContent = displayTime(restTime);
-    } else {
-        document.body.style.cursor = 'auto';
-        restTime = 0;
-        restingTime.textContent = 'Not resting';
-    }
+	// cursor hiding
+	if (Date.now() - lastMouseMove >= 3e3) {
+		document.body.style.cursor = "none";
+		restTime = Date.now() - lastMouseMove - 3e3;
+		restingTime.textContent = displayTime(restTime);
+	} else {
+		document.body.style.cursor = "auto";
+		restTime = 0;
+		restingTime.textContent = "Not resting";
+	}
 
-    // short-circuit for optimization
-    if (!document.hasFocus()) {
-        requestAnimationFrame(main);
-        return;
-    }
+	// short-circuit for optimization
+	if (!document.hasFocus()) {
+		requestAnimationFrame(main);
+		return;
+	}
 
-    // fps
-    if (Date.now() - lastFpsMeasure >= 1e3) {
-        fps = frame;
-        fpsCounter.textContent = fps ?? 'Measuring...';
-        lastFpsMeasure = Date.now();
-        frame = 0;
-    } else {
-        frame += 1;
-    }
+	// fps
+	if (Date.now() - lastFpsMeasure >= 1e3) {
+		fps = frame;
+		fpsCounter.textContent = fps ?? "Measuring...";
+		lastFpsMeasure = Date.now();
+		frame = 0;
+	} else {
+		frame += 1;
+	}
 
-    // battery probe
-    if (debuggingMode && restTime < 60e3) battery = await navigator.getBattery();
+	// battery probe
+	if (debuggingMode && restTime < 60e3)
+		battery = await navigator.getBattery();
 
-    // time and date
-    const now = new Date();
-    timeAndDate.textContent = `${now.toLocaleTimeString()} ${now.toLocaleDateString()}`;
+	// time and date
+	const now = new Date();
+	timeAndDate.textContent = `${now.toLocaleTimeString()} ${now.toLocaleDateString()}`;
 
-    // heap used
-    heapUsed.textContent = (performance.memory.usedJSHeapSize / performance.memory.jsHeapSizeLimit * 100).toFixed(2) + '%';
-    requestAnimationFrame(main);
+	// heap used
+	heapUsed.textContent =
+		(
+			(performance.memory.usedJSHeapSize /
+				performance.memory.jsHeapSizeLimit) *
+			100
+		).toFixed(2) + "%";
+	requestAnimationFrame(main);
 }
 main();
