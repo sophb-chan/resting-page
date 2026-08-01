@@ -88,27 +88,33 @@ navigator.getBattery().then((battery) => {
 	lastBatteryLevel = battery.level;
 	const estimate = () => {
 		return {
-			chargingTime: battery.charging || batteryEstimation.recordedChargeTimes.length === 0
-				? batteryEstimation.recordedChargeTimes.reduce(
-						(accumulator, time, index) =>
-							(accumulator + time) /
-							(index === batteryEstimation.recordedChargeTimes
-								? batteryEstimation.recordedChargeTimes.length
-								: 1),
-						0,
-					)
-				: Infinity,
-			dischargingTime: !battery.charging || batteryEstimation.recordedDischargeTimes.length === 0
-				? batteryEstimation.recordedDischargeTimes.reduce(
-						(accumulator, time, index) =>
-							(accumulator + time) /
-							(index === batteryEstimation.recordedDischargeTimes
-								? batteryEstimation.recordedDischargeTimes
-										.length
-								: 1),
-						0,
-					)
-				: Infinity,
+			chargingTime:
+				battery.charging ||
+				batteryEstimation.recordedChargeTimes.length === 0
+					? batteryEstimation.recordedChargeTimes.reduce(
+							(accumulator, time, index) =>
+								(accumulator + time) /
+								(index === batteryEstimation.recordedChargeTimes
+									? batteryEstimation.recordedChargeTimes
+											.length
+									: 1),
+							0,
+						)
+					: Infinity,
+			dischargingTime:
+				!battery.charging ||
+				batteryEstimation.recordedDischargeTimes.length === 0
+					? batteryEstimation.recordedDischargeTimes.reduce(
+							(accumulator, time, index) =>
+								(accumulator + time) /
+								(index ===
+								batteryEstimation.recordedDischargeTimes
+									? batteryEstimation.recordedDischargeTimes
+											.length
+									: 1),
+							0,
+						)
+					: Infinity,
 		};
 	};
 	const updateBatteryLevelChangeRecords = () => {
@@ -159,9 +165,15 @@ navigator.getBattery().then((battery) => {
 		} else {
 			clearTimeout(estimateTimeout);
 			const estimated = estimate();
-			batteryChargeTime.textContent = displayStackedTime(
-				Math.min(estimated.chargingTime, estimated.dischargingTime) * 1e3,
-			);
+			if (estimated.chargingTime === Infinity)
+				batteryChargeTime.textContent = `Could not estimate battery ${battery.charging ? "charge" : "discharge"} time :(`;
+			else
+				batteryChargeTime.textContent = displayStackedTime(
+					Math.min(
+						estimated.chargingTime,
+						estimated.dischargingTime,
+					) * 1e3,
+				);
 		}
 	};
 
