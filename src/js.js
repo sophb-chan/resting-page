@@ -154,7 +154,6 @@ const ping = async (...urls) => {
 		}
 		const totalTime = Date.now() - startTime;
 		pingTime.textContent = displayStackedTime(totalTime, true);
-		updateCheck();
 		return totalTime;
 	}
 };
