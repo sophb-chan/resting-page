@@ -95,9 +95,9 @@ navigator.getBattery().then((battery) => {
 							(accumulator, time, index) =>
 								(accumulator +
 									(time -
-										(batteryEstimation
-											.recordedChargeTimes[index] ??
-											0))) /
+										(batteryEstimation.recordedChargeTimes[
+											index
+										] ?? 0))) /
 								(index === batteryEstimation.recordedChargeTimes
 									? batteryEstimation.recordedChargeTimes
 											.length
@@ -160,29 +160,34 @@ navigator.getBattery().then((battery) => {
 			batteryChargeTime.textContent = "Estimating...";
 			clearTimeout(estimateTimeout);
 			estimateTimeout = setTimeout(() => {
-				// TODO: make your own estimation system
+				// TODO: make your own estimation system work
 				batteryChargeTime.textContent =
-					"Estimating... (Switching to non-native estimation in 10 seconds...)";
+					"Estimating... (Giving up in 10 seconds...)";
+				// batteryChargeTime.textContent =
+				// "Estimating... (Switching to non-native estimation in 10 seconds...)";
 				estimateTimeout = setTimeout(() => {
+					/*
 					batteryChargeTime.textContent = `Could not estimate battery ${battery.charging ? "charge" : "discharge"} time (natively), trying custom estimation...`;
 					const estimated = estimate();
 					console.log(estimated);
 					batteryChargeTime.textContent = `Estimated. Check console!`;
+					*/
+					batteryChargeTime.textContent = `Could not estimate battery ${battery.charging ? "charge" : "discharge"} time :(`;
 				}, 10e3);
 			}, 20e3);
 		} else {
 			clearTimeout(estimateTimeout);
+			/*
 			const estimated = estimate();
 			console.log(estimated);
 			if (estimated.chargingTime === Infinity)
 				batteryChargeTime.textContent = `Could not estimate battery ${battery.charging ? "charge" : "discharge"} time :(`;
 			else
-				batteryChargeTime.textContent = displayStackedTime(
-					Math.min(
-						estimated.chargingTime,
-						estimated.dischargingTime,
-					) * 1e3,
-				);
+				*/
+			batteryChargeTime.textContent = displayStackedTime(
+				Math.min(estimated.chargingTime, estimated.dischargingTime) *
+					1e3,
+			);
 		}
 	};
 
