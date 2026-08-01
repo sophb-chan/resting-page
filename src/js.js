@@ -80,11 +80,12 @@ localStorage.batteryEstim ??= JSON.stringify({
 	recordedDischargeTimes: [],
 });
 const batteryEstimation = JSON.parse(localStorage.batteryEstim);
-let lastBatteryChargeTime, lastBatteryDischargeTime;
+let lastBatteryChargeTime, lastBatteryDischargeTime, lastBatteryLevel;
 
 // battery
 let estimateTimeout;
 navigator.getBattery().then((battery) => {
+	lastBatteryLevel = battery.level;
 	const estimate = () => {
 		return {
 			chargeTime: battery.charging || batteryEstimation.recordedChargeTimes.length === 0
@@ -111,7 +112,7 @@ navigator.getBattery().then((battery) => {
 		};
 	};
 	const updateBatteryLevelChangeRecords = () => {
-		if (battery.charging) {
+		if (battery.charging && battery.level - lastBatteryLevel >= 0) {
 			if (lastBatteryChargeTime)
 				batteryEstimation.recordedChargeTimes.push(
 					Date.now(lastBatteryChargeTime),
@@ -130,6 +131,7 @@ navigator.getBattery().then((battery) => {
 	const updateBatteryPercentage = () => {
 		batteryPercentage.textContent = Math.trunc(battery.level * 100);
 		updateBatteryLevelChangeRecords();
+		lastBatteryLevel = battery.level;
 	};
 	const updateBatteryCharging = () => {
 		batteryIsCharging.textContent = battery.charging ? "yes" : "no";
