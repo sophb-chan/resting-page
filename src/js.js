@@ -88,7 +88,7 @@ navigator.getBattery().then((battery) => {
 	lastBatteryLevel = battery.level;
 	const estimate = () => {
 		return {
-			chargeTime: battery.charging || batteryEstimation.recordedChargeTimes.length === 0
+			chargingTime: battery.charging || batteryEstimation.recordedChargeTimes.length === 0
 				? batteryEstimation.recordedChargeTimes.reduce(
 						(accumulator, time, index) =>
 							(accumulator + time) /
@@ -98,7 +98,7 @@ navigator.getBattery().then((battery) => {
 						0,
 					)
 				: Infinity,
-			dischargeTime: !battery.charging || batteryEstimation.recordedDischargeTimes.length === 0
+			dischargingTime: !battery.charging || batteryEstimation.recordedDischargeTimes.length === 0
 				? batteryEstimation.recordedDischargeTimes.reduce(
 						(accumulator, time, index) =>
 							(accumulator + time) /
@@ -148,18 +148,19 @@ navigator.getBattery().then((battery) => {
 			estimateTimeout = setTimeout(() => {
 				// TODO: make your own estimation system
 				batteryChargeTime.textContent =
-					"Estimating... (Switching to non-native estimation in 0 seconds...)";
+					"Estimating... (Switching to non-native estimation in 10 seconds...)";
 				estimateTimeout = setTimeout(() => {
 					batteryChargeTime.textContent = `Could not estimate battery ${battery.charging ? "charge" : "discharge"} time (natively), trying custom estimation...`;
 					const estimated = estimate();
 					console.log(estimated);
 					batteryChargeTime.textContent = `Estimated. Check console!`;
-				}, 0e3);
-			}, 0e3);
+				}, 10e3);
+			}, 20e3);
 		} else {
 			clearTimeout(estimateTimeout);
+			const estimated = estimate();
 			batteryChargeTime.textContent = displayStackedTime(
-				Math.min(battery.chargingTime, battery.dischargingTime) * 1e3,
+				Math.min(estimated.chargingTime, estimated.dischargingTime) * 1e3,
 			);
 		}
 	};
