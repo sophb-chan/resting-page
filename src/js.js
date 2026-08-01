@@ -49,7 +49,7 @@ function displayStackedTime(time, includeMs = false) {
 	return displayedTimes.join(" ");
 }
 function delay(ms) {
-    return new Promise(res => setTimeout(res, ms));
+	return new Promise((res) => setTimeout(res, ms));
 }
 
 // element variables
@@ -74,11 +74,63 @@ document.addEventListener("mousemove", () => {
 	restTime = 0;
 });
 
+// battery charge/discharge estimation
+localStorage.batteryEstim ??= JSON.stringify({
+	recordedChargeTimes: [],
+	recordedDischargeTimes: [],
+});
+const batteryEstimation = JSON.parse(localStorage.batteryEstim);
+let lastBatteryChargeTime, lastBatteryDischargeTime;
+
 // battery
 let estimateTimeout;
 navigator.getBattery().then((battery) => {
-	const updateBatteryPercentage = () =>
-		(batteryPercentage.textContent = Math.trunc(battery.level * 100));
+	const estimate = () => {
+		return {
+			chargeTime: battery.charging || battery.recordedChargeTimes.length === 0
+				? batteryEstimation.recordedChargeTimes.reduce(
+						(accumulator, time, index) =>
+							(accumulator + time) /
+							(index === batteryEstimation.recordedChargeTimes
+								? batteryEstimation.recordedChargeTimes.length
+								: 1),
+						0,
+					)
+				: Infinity,
+			dischargeTime: !battery.charging || battery.recordedDischargeTimes.length === 0
+				? batteryEstimation.recordedDischargeTimes.reduce(
+						(accumulator, time, index) =>
+							(accumulator + time) /
+							(index === batteryEstimation.recordedDischargeTimes
+								? batteryEstimation.recordedDischargeTimes
+										.length
+								: 1),
+						0,
+					)
+				: Infinity,
+		};
+	};
+	const updateBatteryLevelChangeRecords = () => {
+		if (battery.charging) {
+			if (lastBatteryChargeTime)
+				batteryEstimation.recordedChargeTimes.push(
+					Date.now(lastBatteryChargeTime),
+				);
+			lastBatteryChargeTime = Date.now();
+		} else {
+			if (lastBatteryDischargeTime)
+				batteryEstimation.recordedDischargeTimes.push(
+					Date.now(lastBatteryDischargeTime),
+				);
+			lastBatteryDischargeTime = Date.now();
+		}
+
+		localStorage.batteryEstim = JSON.stringify(batteryEstimation);
+	};
+	const updateBatteryPercentage = () => {
+		batteryPercentage.textContent = Math.trunc(battery.level * 100);
+		updateBatteryLevelChangeRecords();
+	};
 	const updateBatteryCharging = () => {
 		batteryIsCharging.textContent = battery.charging ? "yes" : "no";
 		updateBatteryStatus();
@@ -92,11 +144,13 @@ navigator.getBattery().then((battery) => {
 			batteryChargeTime.textContent = "Estimating...";
 			clearTimeout(estimateTimeout);
 			estimateTimeout = setTimeout(() => {
-                // TODOO: make your own estimation system
+				// TODO: make your own estimation system
 				batteryChargeTime.textContent =
-					"Estimating... (Giving up in 10 seconds...)";
+					"Estimating... (Switching to non-native estimation in 10 seconds...)";
 				estimateTimeout = setTimeout(() => {
-					batteryChargeTime.textContent = `Could not estimate battery ${battery.charging ? "charge" : "discharge"} time :(`;
+					batteryChargeTime.textContent = `Could not estimate battery ${battery.charging ? "charge" : "discharge"} time (natively), trying custom estimation...`;
+					const estimated = estimate();
+					console.log(estimated);
 				}, 10e3);
 			}, 20e3);
 		} else {
@@ -145,11 +199,10 @@ const ping = async (...urls) => {
 		}
 		const startTime = Date.now();
 		try {
-			await fetch(url, { mode: 'no-cors' });
+			await fetch(url, { mode: "no-cors" });
 		} catch {
-            pingTime.textContent = `Unable to ping '${url}' - Fetch failed`;
-            if (index !== urls.length - 1)
-                await delay(500);
+			pingTime.textContent = `Unable to ping '${url}' - Fetch failed`;
+			if (index !== urls.length - 1) await delay(500);
 			continue;
 		}
 		const totalTime = Date.now() - startTime;
