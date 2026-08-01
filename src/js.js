@@ -165,6 +165,7 @@ navigator.getBattery().then((battery) => {
 		} else {
 			clearTimeout(estimateTimeout);
 			const estimated = estimate();
+			console.log(estimated);
 			if (estimated.chargingTime === Infinity)
 				batteryChargeTime.textContent = `Could not estimate battery ${battery.charging ? "charge" : "discharge"} time :(`;
 			else
