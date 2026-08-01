@@ -177,7 +177,7 @@ async function updateCheck() {
 	else if (lastSha !== latestSha && navigator.onLine) location.reload();
 }
 updateCheck();
-setInterval(updateCheck, 10 * a60e3);
+setInterval(updateCheck, 10 * 60e3);
 
 // main loop
 let battery = {};
