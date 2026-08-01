@@ -89,8 +89,8 @@ navigator.getBattery().then((battery) => {
 	const estimate = () => {
 		return {
 			chargingTime:
-				battery.charging ||
-				batteryEstimation.recordedChargeTimes.length === 0
+				(battery.charging ||
+				batteryEstimation.recordedChargeTimes.length === 0)
 					? batteryEstimation.recordedChargeTimes.reduce(
 							(accumulator, time, index) =>
 								(accumulator + time) /
@@ -102,8 +102,8 @@ navigator.getBattery().then((battery) => {
 						)
 					: Infinity,
 			dischargingTime:
-				!battery.charging ||
-				batteryEstimation.recordedDischargeTimes.length === 0
+				(!battery.charging ||
+				batteryEstimation.recordedDischargeTimes.length === 0)
 					? batteryEstimation.recordedDischargeTimes.reduce(
 							(accumulator, time, index) =>
 								(accumulator + time) /
