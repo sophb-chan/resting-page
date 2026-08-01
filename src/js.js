@@ -148,14 +148,14 @@ navigator.getBattery().then((battery) => {
 			estimateTimeout = setTimeout(() => {
 				// TODO: make your own estimation system
 				batteryChargeTime.textContent =
-					"Estimating... (Switching to non-native estimation in 10 seconds...)";
+					"Estimating... (Switching to non-native estimation in 0 seconds...)";
 				estimateTimeout = setTimeout(() => {
 					batteryChargeTime.textContent = `Could not estimate battery ${battery.charging ? "charge" : "discharge"} time (natively), trying custom estimation...`;
 					const estimated = estimate();
 					console.log(estimated);
 					batteryChargeTime.textContent = `Estimated. Check console!`;
-				}, 10e3);
-			}, 20e3);
+				}, 0e3);
+			}, 0e3);
 		} else {
 			clearTimeout(estimateTimeout);
 			batteryChargeTime.textContent = displayStackedTime(
