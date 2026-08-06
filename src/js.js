@@ -74,78 +74,10 @@ document.addEventListener("mousemove", () => {
 	restTime = 0;
 });
 
-// battery charge/discharge estimation
-localStorage.batteryEstim ??= JSON.stringify({
-	recordedChargeTimes: [],
-	recordedDischargeTimes: [],
-});
-const batteryEstimation = JSON.parse(localStorage.batteryEstim);
-let lastBatteryChargeTime, lastBatteryDischargeTime, lastBatteryLevel;
-
-// battery
 let estimateTimeout;
 navigator.getBattery().then((battery) => {
-	lastBatteryLevel = battery.level;
-	const estimate = () => {
-		return {
-			chargingTime:
-				battery.charging ||
-				batteryEstimation.recordedChargeTimes.length === 0
-					? batteryEstimation.recordedChargeTimes.reduce(
-							(accumulator, time, index) =>
-								(accumulator +
-									(time -
-										(batteryEstimation.recordedChargeTimes[
-											index
-										] ?? 0))) /
-								(index === batteryEstimation.recordedChargeTimes
-									? batteryEstimation.recordedChargeTimes
-											.length
-									: 1),
-							0,
-						)
-					: Infinity,
-			dischargingTime:
-				!battery.charging ||
-				batteryEstimation.recordedDischargeTimes.length === 0
-					? batteryEstimation.recordedDischargeTimes.reduce(
-							(accumulator, time, index) =>
-								(accumulator +
-									(time -
-										(batteryEstimation
-											.recordedDischargeTimes[index] ??
-											0))) /
-								(index ===
-								batteryEstimation.recordedDischargeTimes
-									? batteryEstimation.recordedDischargeTimes
-											.length
-									: 1),
-							0,
-						)
-					: Infinity,
-		};
-	};
-	const updateBatteryLevelChangeRecords = () => {
-		if (battery.charging && battery.level - lastBatteryLevel >= 0) {
-			if (lastBatteryChargeTime)
-				batteryEstimation.recordedChargeTimes.push(
-					Date.now(lastBatteryChargeTime),
-				);
-			lastBatteryChargeTime = Date.now();
-		} else {
-			if (lastBatteryDischargeTime)
-				batteryEstimation.recordedDischargeTimes.push(
-					Date.now(lastBatteryDischargeTime),
-				);
-			lastBatteryDischargeTime = Date.now();
-		}
-
-		localStorage.batteryEstim = JSON.stringify(batteryEstimation);
-	};
 	const updateBatteryPercentage = () => {
 		batteryPercentage.textContent = Math.trunc(battery.level * 100);
-		updateBatteryLevelChangeRecords();
-		lastBatteryLevel = battery.level;
 	};
 	const updateBatteryCharging = () => {
 		batteryIsCharging.textContent = battery.charging ? "yes" : "no";
@@ -160,30 +92,19 @@ navigator.getBattery().then((battery) => {
 			batteryChargeTime.textContent = "Estimating...";
 			clearTimeout(estimateTimeout);
 			estimateTimeout = setTimeout(() => {
-				// TODO: make your own estimation system work
+				// TODO: make your own (working) estimation system
 				batteryChargeTime.textContent =
 					"Estimating... (Giving up in 10 seconds...)";
-				// batteryChargeTime.textContent =
-				// "Estimating... (Switching to non-native estimation in 10 seconds...)";
 				estimateTimeout = setTimeout(() => {
-					/*
-					batteryChargeTime.textContent = `Could not estimate battery ${battery.charging ? "charge" : "discharge"} time (natively), trying custom estimation...`;
-					const estimated = estimate();
-					console.log(estimated);
-					batteryChargeTime.textContent = `Estimated. Check console!`;
-					*/
 					batteryChargeTime.textContent = `Could not estimate battery ${battery.charging ? "charge" : "discharge"} time :(`;
 				}, 10e3);
 			}, 20e3);
 		} else {
 			clearTimeout(estimateTimeout);
-			/*
-			const estimated = estimate();
-			console.log(estimated);
-			if (estimated.chargingTime === Infinity)
-				batteryChargeTime.textContent = `Could not estimate battery ${battery.charging ? "charge" : "discharge"} time :(`;
-			else
-				*/
+			const estimated = {
+				chargingTime: battery.chargingTime,
+				dischargingTime: battery.dischargingTime,
+			};
 			batteryChargeTime.textContent = displayStackedTime(
 				Math.min(estimated.chargingTime, estimated.dischargingTime) *
 					1e3,
