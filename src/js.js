@@ -222,7 +222,7 @@ async function main() {
 
 	// time and date
 	const now = new Date();
-	timeAndDate.textContent = `${now.toLocaleTimeString()} ${now.toLocaleDateString()}`;
+	timeAndDate.textContent = `${now.toLocaleTimeString().replaceAll(':', now.getSeconds() % 2 ? ' ' : ':')} ${now.toLocaleDateString()}`;
 
 	// heap used
 	heapUsed.textContent =
