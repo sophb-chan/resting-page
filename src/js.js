@@ -217,7 +217,7 @@ async function main() {
 	}
 
 	// fps
-	if (Date.now() - lastFpsMeasure >= 1e3) {
+	if (Date.now() - lastFpsMeasure >= 1e3 && document.hasFocus()) {
 		fps = frame;
 		fpsCounter.textContent = fps ?? "Measuring...";
 		lastFpsMeasure = Date.now();
