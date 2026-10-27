@@ -198,11 +198,12 @@ const weeks = [
 	'Saturday',
 ];
 Object.seal(weeks);
+const cursorHideDelay = 3e3;
 async function main() {
 	// cursor hiding
-	if (Date.now() - lastMouseMove >= 3e3) {
+	if (Date.now() - lastMouseMove >= cursorHideDelay) {
 		document.body.style.cursor = "none";
-		restTime = Date.now() - lastMouseMove - 3e3;
+		restTime = Date.now() - lastMouseMove - cursorHideDelay;
 		restingTime.textContent = displayTime(restTime);
 	} else {
 		document.body.style.cursor = "auto";
