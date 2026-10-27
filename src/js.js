@@ -188,6 +188,22 @@ let debuggingMode = false;
 let lastFpsMeasure = 0,
 	frame,
 	fps;
+const weeks = [
+	'Monday',
+	'Tuesday',
+	'Wednesday',
+	'Thursday',
+	'Friday',
+	'Saturday',
+	'Sunday',
+];
+Object.seal(weeks);
+const shiftedWeeks = structuredClone(weeks);
+const firstWeekDay = new Intl.Locale(navigator.language).getWeekInfo().firstDay - 1;
+while (shiftedWeeks.indexOf(weeks[firstWeekDay]) !== 0) {
+	shiftedWeeks.unshift(shiftedWeeks.pop());
+}
+Object.seal(shiftedWeeks);
 async function main() {
 	// cursor hiding
 	if (Date.now() - lastMouseMove >= 3e3) {
