@@ -74,7 +74,8 @@ document.addEventListener("mousemove", () => {
 	restTime = 0;
 });
 function getInfoSection(infoSectionName) {
-	return document.querySelector(`.info-section#${name}`);
+	return document.querySelector(`.info-section#${infoSectionName}`);
+	
 }
 
 // Battery
