@@ -73,9 +73,31 @@ document.addEventListener("mousemove", () => {
 	lastMouseMove = Date.now();
 	restTime = 0;
 });
+function getInfoSection(infoSectionName) {
+	return document.querySelector(`.info-section#${name}`);
+}
 
+// Battery
 let estimateTimeout;
+const batteryInfoSection = getInfoSection('battery');
 navigator.getBattery().then((battery) => {
+	battery.exists = !(
+		(
+			battery.level === 1 &&
+			battery.charging === true &&
+			battery.dischargingTime === Infinity
+		) ||
+		!('onlevelchange' in battery) ||
+		navigator?.battery != null
+	);
+
+	if (!battery.exists) {
+		batteryInfoSection.style.display = 'none';
+		return;
+	} else {
+		batteryInfoSection.style.display = 'revert';
+	}
+
 	const updateBatteryPercentage = () => {
 		batteryPercentage.textContent = Math.trunc(battery.level * 100);
 	};
@@ -107,7 +129,7 @@ navigator.getBattery().then((battery) => {
 			};
 			batteryChargeTime.textContent = displayStackedTime(
 				Math.min(estimated.chargingTime, estimated.dischargingTime) *
-					1e3,
+				1e3,
 			);
 		}
 	};
@@ -171,7 +193,7 @@ async function updateCheck() {
 		await (
 			await fetch(
 				"https://api.github.com/repos/sophb-ccjt/resting-page/commits?per_page=1&sha=main&nocache=" +
-					Math.random(),
+				Math.random(),
 			)
 		).text(),
 	)[0]?.sha;
